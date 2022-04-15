@@ -1,12 +1,12 @@
 import * as fs from "fs";
-import genesis from "./genesis.json";
+import genesis from "./test-genesis.json";
 import * as bech32 from "bech32";
 
-const genesisJson = genesis;
+const GENESIS_JSON = genesis;
 const PATH = require("path");
 const { parse } = require("csv-parse/sync");
 
-const UNUNIFI = "ununifi";
+const UNUNIFI = "ununifi1";
 const HTTPS_STRING = "https";
 const LEN_RECORD_CONTENT = 2;
 const REGEX = RegExp(/^\w{46}$/);
@@ -28,7 +28,7 @@ function arrangeReportingScammers(FileName: string): Array<any> {
 
   for (const record of records) {
     const urlString = record[3].substr(0, 5);
-    const addressPrefix = record[4].substr(0, 7);
+    const addressPrefix = record[4].substr(0, 8);
     if (HTTPS_STRING != urlString) {
       delete records[index];
     } else if (addressPrefix != UNUNIFI) {
@@ -59,7 +59,7 @@ function arrangeAirdropApplication(FileName: string): Array<any> {
   // array to have each discord-id and address pair
   let arrangedList = [];
   for (const record of records) {
-    const addressPrefix = record[4].substr(0, 7);
+    const addressPrefix = record[4].substr(0, 8);
     if (addressPrefix != UNUNIFI) {
       delete records[index];
     } else if (!checkAddressFormat(record[4])) {
@@ -74,22 +74,22 @@ function arrangeAirdropApplication(FileName: string): Array<any> {
   return arrangedList;
 }
 
-/* // arrange non active doubtful user report form
-function arrangeDoubtfulUser(FileName: string): any {
-  // read the file
-  const filepath = PATH.join(__dirname,  FileName);
-  const data = fs.readFileSync(filepath);
+// // arrange non active doubtful user report form
+// function arrangeDoubtfulUser(FileName: string): any {
+//   // read the file
+//   const filepath = PATH.join(__dirname,  FileName);
+//   const data = fs.readFileSync(filepath);
 
-  // parse the content of the file
-  const records = parse(data);
+//   // parse the content of the file
+//   const records = parse(data);
 
-  // arrange content ([reporter id, doubtfulUser id])
-  let arrangeList = [];
-  for (const record of records) {
-    arrangeList.push([record[2], record[4]]);
-  }
-  return arrangeList;
-} */
+//   // arrange content ([reporter id, doubtfulUser id])
+//   let arrangeList = [];
+//   for (const record of records) {
+//     arrangeList.push([record[2], record[4]]);
+//   }
+//   return arrangeList;
+// }
 
 // overwrite the reported discord-id user's address and doubtful user id, and then create a perfect list
 function makeFinalList(
@@ -104,13 +104,13 @@ function makeFinalList(
       }
     });
   }
-  /* arrangedAirdropApplicationList.map((pair) => {
-    for (const doubtfulUser of doubtfulUserList) {
-      if (pair[0] == doubtfulUser[1]) {
-        return pair[1] = "disallowed";
-      }
-    }
-  }) */
+  // arrangedAirdropApplicationList.map((pair) => {
+  //   for (const doubtfulUser of doubtfulUserList) {
+  //     if (pair[0] == doubtfulUser[1]) {
+  //       return pair[1] = "disallowed";
+  //     }
+  //   }
+  // })
 
   return arrangedAirdropApplicationList;
 }
@@ -200,30 +200,23 @@ function extractAddresses(airdropList: Array<any>): Array<string> {
   return airdropAdresses;
 }
 
-function processGenesisAccounts(airdropAddresses: Array<string>) {
-  for (const address of airdropAddresses) {
-    genesisJson.app_state.auth.accounts.push({
+function processNormalAccounts(accInfo: any, amount: string) {
+  for (const acc of accInfo) {
+    GENESIS_JSON.app_state.auth.accounts.push({
       "@type": "/cosmos.auth.v1beta1.BaseAccount",
-      address: address,
+      address: acc,
       pub_key: null,
       account_number: "0",
       sequence: "0",
     });
-  }
-}
 
-function processGenesisBankBalances(
-  airdropAddresses: Array<string>,
-  amount: string
-) {
-  // add airdrop information
-  for (const address of airdropAddresses) {
-    genesisJson.app_state.bank.balances.push({
-      address: address,
+    GENESIS_JSON.app_state.bank.balances.push({
+      address: acc,
       coins: [
         {
           denom: "uguu",
-          amount: amount,
+          // amount: acc[1],
+          amount: amount
         },
       ],
     });
@@ -232,11 +225,11 @@ function processGenesisBankBalances(
 
 // export processed genesis.json
 function exportJSON(data: any) {
-  const genesisJson = JSON.stringify(data, null, "  ");
+  const GENESIS_JSON = JSON.stringify(data, null, "  ");
   const outputFilepath = PATH.join(__dirname, "genesis.json");
 
   try {
-    fs.writeFileSync(outputFilepath, genesisJson);
+    fs.writeFileSync(outputFilepath, GENESIS_JSON);
   } catch (e) {
     console.log(e);
   }
@@ -284,17 +277,14 @@ const main = () => {
   const validatedFinalAirdropAddresses = extractAddresses(
     validatedFinalAirdropList
   );
-  processGenesisAccounts(validatedFinalAirdropAddresses);
 
   const numValidAddresses = validatedFinalAirdropAddresses.length;
   const { baseAirdropAmount, restAmount } =
     determineBaseAirdropAmount(numValidAddresses);
-  processGenesisBankBalances(
-    validatedFinalAirdropAddresses,
-    baseAirdropAmount.toString()
-  ); // the amount is temporal
 
-  exportJSON(genesisJson);
+  processNormalAccounts(validatedFinalAirdropAddresses, baseAirdropAmount.toString());
+
+  exportJSON(GENESIS_JSON);
   exportTokenAllocationInfo(numValidAddresses, baseAirdropAmount, restAmount);
 };
 
