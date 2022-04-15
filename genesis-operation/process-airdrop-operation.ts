@@ -11,6 +11,7 @@ const HTTPS_STRING = "https";
 const LEN_RECORD_CONTENT = 2;
 const REGEX = RegExp(/^\w{46}$/);
 const TOTAL_AIRDROP_AMOUNT = 30000000000000;
+const cdpAccAddress = "ununifi1wq9ts6l7atfn45ryxrtg4a2gwegsh3xhhj740g";
 
 function arrangeReportingScammers(FileName: string): Array<any> {
   // read the file
@@ -151,6 +152,11 @@ function checkAddressFormat(address: string): boolean {
   if (!REGEX.test(address)) {
     return false;
   }
+  // check if the address is the module account address
+  if (address == cdpAccAddress) {
+    return false;
+  }
+
   // check if the address part follows the bech32 chars rule
   try {
     const _ = bech32.decode(address);
@@ -160,6 +166,8 @@ function checkAddressFormat(address: string): boolean {
 
   return true;
 }
+
+
 
 function exportCSV(content: Array<any>, exportingFileName: string) {
   // export aranged csv file
