@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import genesis from "./test-genesis.json";
+import genesis from "./genesis.json";
 import * as bech32 from "bech32";
 
 const GENESIS_JSON = genesis;
@@ -12,6 +12,11 @@ const LEN_RECORD_CONTENT = 2;
 const REGEX = RegExp(/^\w{46}$/);
 const TOTAL_AIRDROP_AMOUNT = 30000000000000;
 const cdpAccAddress = "ununifi1wq9ts6l7atfn45ryxrtg4a2gwegsh3xhhj740g";
+
+function init() {
+  // delete a element that is added in command just to define type
+  GENESIS_JSON.app_state.auth.accounts.pop();
+}
 
 function arrangeReportingScammers(FileName: string): Array<any> {
   // read the file
@@ -167,26 +172,24 @@ function checkAddressFormat(address: string): boolean {
   return true;
 }
 
+// function exportCSV(content: Array<any>, exportingFileName: string) {
+//   // export aranged csv file
+//   let str = "Discord-id,WalletAddress,\n";
+//   const lenArrangedRecord = content.length;
+//   for (let i = 0; i < lenArrangedRecord; i++) {
+//     for (let j = 0; j < LEN_RECORD_CONTENT; j++) {
+//       (str += '"' + content[i][j] + '",'), "";
+//     }
+//     str += "\n";
+//   }
 
-
-function exportCSV(content: Array<any>, exportingFileName: string) {
-  // export aranged csv file
-  let str = "Discord-id,WalletAddress,\n";
-  const lenArrangedRecord = content.length;
-  for (let i = 0; i < lenArrangedRecord; i++) {
-    for (let j = 0; j < LEN_RECORD_CONTENT; j++) {
-      (str += '"' + content[i][j] + '",'), "";
-    }
-    str += "\n";
-  }
-
-  try {
-    const filepath = PATH.join(__dirname, exportingFileName);
-    fs.writeFileSync(filepath, str);
-  } catch (e) {
-    console.log(e);
-  }
-}
+//   try {
+//     const filepath = PATH.join(__dirname, exportingFileName);
+//     fs.writeFileSync(filepath, str);
+//   } catch (e) {
+//     console.log(e);
+//   }
+// }
 
 // below is the fns for determine airdrop amount for the typed addresses
 function determineBaseAirdropAmount(numEligibleAcc: number): {
@@ -264,6 +267,8 @@ function exportTokenAllocationInfo(
 }
 
 const main = () => {
+  init();
+
   // the process of csv files and create final valid addresses
   const arrangedReportingScammersList = arrangeReportingScammers(
     "Form_for_reporting_scammers_who_use_your_id.csv"
