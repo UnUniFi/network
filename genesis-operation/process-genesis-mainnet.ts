@@ -1,5 +1,5 @@
 // vadation file of genesis.json at mainnet launch
-import genesis from "./genesis.json";
+import genesis from "./test-genesis.json";
 import * as fs from "fs";
 
 const path = require("path");
@@ -73,24 +73,25 @@ function processVestingAccounts(accInfo: any) {
     const start_time = dateToUnixTime(acc[2]);
     const end_time = dateToUnixTime(acc[3]);
 
-    GENESIS_JSON.app_state.auth.accounts.push({
-      "@type": "/cosmos.vesting.v1beta1.ContinuousVestingAccount",
-      base_vesting_account: {
-        base_account: {
-          address: acc[0],
-          pub_key: null,
-          account_number: "0",
-          sequence: "0",
-        },
-        original_vesting: [
-          {
-            denom: "uguu",
-            amount: acc[1],
+    GENESIS_JSON.app_state.auth.accounts.push(
+      {
+        "@type": "/cosmos.vesting.v1beta1.ContinuousVestingAccount",
+        base_vesting_account: {
+          base_account: {
+            address: acc[0],
+            pub_key: null,
+            account_number: "0",
+            sequence: "0",
           },
-        ],
-        delegated_free: [],
-        delegated_vesting: [],
-        end_time: end_time,
+          original_vesting: [
+            {
+              denom: "uguu",
+              amount: acc[1],
+            },
+          ],
+          delegated_free: [],
+          delegated_vesting: [],
+          end_time: end_time,
       },
       start_time: start_time,
     });

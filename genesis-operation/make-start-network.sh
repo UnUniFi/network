@@ -17,6 +17,6 @@ jq '.app_state.auth.accounts |= .+[{"@type":"/cosmos.auth.v1beta1.BaseAccount","
 # move to folder that have ts scripts
 # locate genesis.json file in where is appropriate for executing below ts scripts
 ./node_modules/.bin/ts-node ./process-genesis-mainnet.ts
-./node_modules/.bin/ts-node ./process-airdrop-operation copy.ts
+./node_modules/.bin/ts-node ./process-airdrop-operation.ts
 mv ./genesis.json ~/.ununifi/config/;
 ununifid start;
