@@ -5,43 +5,11 @@
 PermitRootLogin yes -> without-password
 
 # ufw で不要なportは閉じる
-空ける必要があるポート
-- 22
-- 26656 … Cosmos SDK P2P
-- 26657 … gRPC API
-- 1317 … Rest API http
-- 1318 … Rest API https
+空ける必要があるポートを開けておく
 
 ```bash
+> ufw allow <port-number>
 > ufw status numbered
-Status: active
-
-     To                         Action      From
-     --                         ------      ----
-[ 1] 22                         ALLOW IN    Anywhere                  
-[ 2] 22 (v6)                    ALLOW IN    Anywhere (v6) 
-```
-
-```bash
-> ufw allow 26656
-> ufw allow 26657
-> ufw allow 1317
-> ufw allow 1318
-> ufw status numbered
-Status: active
-
-     To                         Action      From
-     --                         ------      ----
-[ 1] 22                         ALLOW IN    Anywhere                  
-[ 2] 26656                      ALLOW IN    Anywhere                  
-[ 3] 26657                      ALLOW IN    Anywhere                  
-[ 4] 1317                       ALLOW IN    Anywhere                  
-[ 5] 1318                       ALLOW IN    Anywhere                  
-[ 6] 22 (v6)                    ALLOW IN    Anywhere (v6)             
-[ 7] 26656 (v6)                 ALLOW IN    Anywhere (v6)             
-[ 8] 26657 (v6)                 ALLOW IN    Anywhere (v6)             
-[ 9] 1317 (v6)                  ALLOW IN    Anywhere (v6)             
-[10] 1318 (v6)                  ALLOW IN    Anywhere (v6)  
 ```
 
 # update
@@ -237,4 +205,95 @@ total 52
 ```
 
 
+---
+
+# set cosmovisor
+## `~/.profile`
+``` 
+export CHAIN_REPO=https://github.com/UnUniFi/chain
+export CHAIN_REPO_BRANCHE=main
+export TARGET=ununifid
+export TARGET_HOME=.ununifi
+export MONIKER=ununifi-test-a # This value is different for each validator.
+export DL_CHAIN_BIN= # Currently this is not necessary.
+export CHAIN_ID=ununifi-test-v1 # This value is example of mainnet.
+export SEEDS= # Currently this is not necessary.
+export PEERS= # This is necessary.
+export GENESIS_FILE_URL=https://raw.githubusercontent.com/UnUniFi/network/ununifi-test-v1/launch/ununifi-test-v1/genesis.json
+export SETUP_NODE_CONFIG_ENV=TRUE
+export SETUP_NODE_ENV=TRUE
+export SETUP_NODE_MASTER=TRUE
+export DAEMON_NAME=$TARGET
+export DAEMON_HOME=$HOME/$TARGET_HOME
+export DAEMON_ALLOW_DOWNLOAD_BINARIES=true
+export DAEMON_LOG_BUFFER_SIZE=512
+export DAEMON_RESTART_AFTER_UPGRADE=true
+export UNSAFE_SKIP_BACKUP=true
+```
+
+```bash
+> source .profile
+```
+
+# install cosmovisor 
+```bash
+cd $HOME
+go install github.com/cosmos/cosmos-sdk/cosmovisor/cmd/cosmovisor@v1.0.0
+mkdir -p $DAEMON_HOME/cosmovisor
+mkdir -p $DAEMON_HOME/cosmovisor/genesis
+mkdir -p $DAEMON_HOME/cosmovisor/genesis/bin
+mkdir -p $DAEMON_HOME/cosmovisor/upgrades
+cp ~/go/bin/$DAEMON_NAME $DAEMON_HOME/cosmovisor/genesis/bin
+```
+
+# create cosmovisor.service
+```bash
+> touch /lib/systemd/system/cosmovisor.service
+> vim /lib/systemd/system/cosmovisor.service
+```
+
+`/lib/systemd/system/cosmovisor.service`
+```
+[Unit]
+Description=Cosmovisor daemon
+After=network-online.target
+[Service]
+Environment="DAEMON_NAME=ununifid"
+Environment="DAEMON_HOME=/root/.ununifi"
+Environment="DAEMON_RESTART_AFTER_UPGRADE=true"
+Environment="DAEMON_ALLOW_DOWNLOAD_BINARIES=false"
+Environment="DAEMON_LOG_BUFFER_SIZE=512"
+Environment="UNSAFE_SKIP_BACKUP=true"
+User=root
+ExecStart=/root/go/bin/cosmovisor start
+Restart=always
+RestartSec=3
+LimitNOFILE=infinity
+LimitNPROC=infinity
+[Install]
+WantedBy=multi-user.target
+```
+
+# Set systemctl
+```bash
+systemctl daemon-reload
+systemctl restart systemd-journald
+systemctl enable cosmovisor
+```
+
+# Start node with cosmovisor
+```bash
+> systemctl start cosmovisor
+> systemctl status cosmovisor
+● cosmovisor.service - Cosmovisor daemon
+     Loaded: loaded (/lib/systemd/system/cosmovisor.service; enabled; vendor preset: enabled)
+     Active: active (running) since Tue 2022-06-21 15:36:54 UTC; 2min 36s ago
+   Main PID: 4152 (cosmovisor)
+      Tasks: 14 (limit: 2274)
+     Memory: 40.1M
+     CGroup: /system.slice/cosmovisor.service
+             ├─4152 /root/go/bin/cosmovisor start
+             └─4157 /root/.ununifi/cosmovisor/genesis/bin/ununifid start
+
+```
 
