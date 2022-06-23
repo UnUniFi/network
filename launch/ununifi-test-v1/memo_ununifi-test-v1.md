@@ -313,6 +313,58 @@ systemctl enable cosmovisor
 
 ```
 
+# SSL with Let ’s Encrypt
+
+## install
+```bash
+> apt -y install certbot nginx
+```
+
+## domain setting
+```
+export DOMAIN=a.ununifi-test-v1.cauchye.net
+```
+
+## stop nginx
+```bash
+> systemctl stop nginx
+```
+
+## port allow
+```bash
+> ufw allow 80
+> ufw allow 443
+```
+
+## Get an SSL certificate
+```bash
+> certbot certonly --standalone -d $DOMAIN -n --agree-tos -m <Email address>
+```
+
+## set nginx
+```bash
+> echo "server {
+        listen 1318 ssl;
+        server_name "$DOMAIN";
+        ssl_certificate /etc/letsencrypt/live/"$DOMAIN"/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/"$DOMAIN"/privkey.pem;
+
+        location / {
+                proxy_pass http://127.0.0.1:1317;
+                proxy_http_version 1.1;
+        }
+}
+" > $HOME/nginx.conf
+> mv $HOME/nginx.conf /etc/nginx/conf.d/ununifi.conf
+> systemctl start nginx
+```
+
+## port close
+```bash
+> ufw status numbered
+> ufw delete <port 80 and 443>
+```
+
 ---
 # Setup at each node
 ununifi-test-b, ununifi-test-c, ununifi-test-d
@@ -360,3 +412,4 @@ ununifi-test-b, ununifi-test-c, ununifi-test-d
 ## set cosmovisor
 Refer to the cosmovisor setup performed by ununifi-test-a.
 Change PEERS and MONIKER as appropriate.
+
