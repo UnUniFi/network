@@ -422,53 +422,91 @@ Change PEERS and MONIKER as appropriate.
 > wget https://github.com/tendermint/faucet/releases/download/v0.0.3/faucet_0.0.3_linux_amd64.tar.gz
 > tar -xvf ./faucet_0.0.3_linux_amd64.tar.gz
 > ufw allow <open listen port number>
+> ufw reload
+> ufw enable
 > ./faucet --cli-name ununifid --denoms ubtc --keyring-backend test --account-name faucet --port 7000 --credit-amount=100 --max-credit=100 --home=/root/.ununifi &
 > ./faucet --cli-name ununifid --denoms uguu --keyring-backend test --account-name faucet --port 7002 --credit-amount=100 --max-credit=100 --home=/root/.ununifi &
 > echo "
-  server {
-    listen 8000;
-    listen [::]:8000;
-    server_name localhost;
-    charset UTF-8;
+server {
+  listen 8000;
+  listen [::]:8000;
+  server_name localhost;
+  charset UTF-8;
 
-    location / {
-      proxy_http_version 1.1;
-      proxy_pass http://localhost:7000;
+  location / {
+    proxy_http_version 1.1;
+    proxy_pass http://localhost:7000;
 
-      if (\$request_method = 'OPTIONS') {
-        add_header Access-Control-Allow-Origin '*';
-        add_header Access-Control-Allow-Methods 'GET, POST, PUT, DELETE';
-        add_header Access-Control-Allow-Headers 'Origin, Authorization, Accept, Content-Type';
-        # add_header Access-Control-Max-Age 3600;
-        add_header Content-Type 'text/plain charset=UTF-8';
-        add_header Content-Length 0;
-        return 204;
-      }
+    if (\$request_method = 'OPTIONS') {
+      add_header Access-Control-Allow-Origin '*';
+      add_header Access-Control-Allow-Methods 'GET, POST, PUT, DELETE';
+      add_header Access-Control-Allow-Headers 'Origin, Authorization, Accept, Content-Type';
+      # add_header Access-Control-Max-Age 3600;
+      add_header Content-Type 'text/plain charset=UTF-8';
+      add_header Content-Length 0;
+      return 204;
     }
   }
+}
 
-  server {
-    listen 8002;
-    listen [::]:8002;
-    server_name localhost;
-    charset UTF-8;
+server {
+  listen 8002;
+  listen [::]:8002;
+  server_name localhost;
+  charset UTF-8;
 
-    location / {
-      proxy_http_version 1.1;
-      proxy_pass http://localhost:7002;
+  location / {
+    proxy_http_version 1.1;
+    proxy_pass http://localhost:7002;
 
-      if (\$request_method = 'OPTIONS') {
-        add_header Access-Control-Allow-Origin '*';
-        add_header Access-Control-Allow-Methods 'GET, POST, PUT, DELETE';
-        add_header Access-Control-Allow-Headers 'Origin, Authorization, Accept, Content-Type';
-        # add_header Access-Control-Max-Age 3600;
-        add_header Content-Type 'text/plain charset=UTF-8';
-        add_header Content-Length 0;
-        return 204;
-      }
+    if (\$request_method = 'OPTIONS') {
+      add_header Access-Control-Allow-Origin '*';
+      add_header Access-Control-Allow-Methods 'GET, POST, PUT, DELETE';
+      add_header Access-Control-Allow-Headers 'Origin, Authorization, Accept, Content-Type';
+      # add_header Access-Control-Max-Age 3600;
+      add_header Content-Type 'text/plain charset=UTF-8';
+      add_header Content-Length 0;
+      return 204;
     }
   }
+}
+" >> /etc/nginx/conf.d/ununifi.conf
+> echo "
+server {
+    listen 8001 ssl;
+    server_name <node domain name>;
+    ssl_certificate /etc/letsencrypt/live/<node domain name>/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/<node domain name>/privkey.pem;
+    # for redirct http to https
+    # error_page 497 301 =307 https://$host:$server_port$request_uri;
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_http_version 1.1;
+        # for redirct http to https
+        #proxy_redirect off;
+        #proxy_set_header Host $host:$server_port;
+        #proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        #proxy_set_header X-Forwarded-Ssl on;
+    }
+}
 
+server {
+    listen 8003 ssl;
+    server_name <node domain name>;
+    ssl_certificate /etc/letsencrypt/live/<node domain name>/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/<node domain name>/privkey.pem;
+    # for redirct http to https
+    # error_page 497 301 =307 https://$host:$server_port$request_uri;
+    location / {
+        proxy_pass http://127.0.0.1:8002;
+        proxy_http_version 1.1;
+        # for redirct http to https
+        #proxy_redirect off;
+        #proxy_set_header Host $host:$server_port;
+        #proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        #proxy_set_header X-Forwarded-Ssl on;
+    }
+}
 " >> /etc/nginx/conf.d/ununifi.conf
 > systemctl restart nginx
 ```
