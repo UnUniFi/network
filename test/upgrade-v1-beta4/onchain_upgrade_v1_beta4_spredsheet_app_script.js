@@ -23,13 +23,13 @@ const ERROR_CODE = {
   const VESTING_ENDS = 6;
   
   function main() {
-    const SpredSheet = SpreadsheetApp.getActiveSpreadsheet();
-    let com_prog_sheet = SpredSheet.getSheetByName("Community Program");
-    let comp_sheet = SpredSheet.getSheetByName("Competition");
-    let mode_sheet = SpredSheet.getSheetByName("Moderator");
-    let vali_sheet = SpredSheet.getSheetByName("validators");
-    let vc_sheet = SpredSheet.getSheetByName("Existing VC of Japanese company");
-    let advisor_sheet = SpredSheet.getSheetByName("Advisor");
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    let com_prog_sheet = spreadsheet.getSheetByName("Community Program");
+    let comp_sheet = spreadsheet.getSheetByName("Competition");
+    let mode_sheet = spreadsheet.getSheetByName("Moderator");
+    let vali_sheet = spreadsheet.getSheetByName("validators");
+    let vc_sheet = spreadsheet.getSheetByName("Existing VC of Japanese company");
+    let advisor_sheet = spreadsheet.getSheetByName("Advisor");
   
     let range;
   
@@ -96,25 +96,25 @@ const ERROR_CODE = {
   
     // /////////////////// output
     // output sheet (validator bank send list)
-    let bankSendListSheet = SpredSheet.getSheetByName("validator bank send list");
+    let bankSendListSheet = spreadsheet.getSheetByName("validator bank send list");
     output_bank_send_list(bankSendListSheet, validator_bank_send_list)
     // output sheet (lendvalidator bank send list)
-    bankSendListSheet = SpredSheet.getSheetByName("lendvalidator bank send list");
+    bankSendListSheet = spreadsheet.getSheetByName("lendvalidator bank send list");
     output_bank_send_list(bankSendListSheet, lendvalidator_bank_send_list)
     // output sheet (eco bank send list)
-    bankSendListSheet = SpredSheet.getSheetByName("eco bank send list");
+    bankSendListSheet = spreadsheet.getSheetByName("eco bank send list");
     output_bank_send_list(bankSendListSheet, eco_bank_send_list)
     // output sheet (vc bank send list)
-    bankSendListSheet = SpredSheet.getSheetByName("vc bank send list");
+    bankSendListSheet = spreadsheet.getSheetByName("vc bank send list");
     output_bank_send_list(bankSendListSheet, vc_bank_send_list)
     // output sheet (advisors bank send list)
-    bankSendListSheet = SpredSheet.getSheetByName("advisors bank send list");
+    bankSendListSheet = spreadsheet.getSheetByName("advisors bank send list");
     output_bank_send_list(bankSendListSheet, advisor_bank_send_list)
     // output sheet (error list)
-    output_error_list(SpredSheet, error_list)
+    output_error_list(spreadsheet, error_list)
   
     // output json 
-    output_json(SpredSheet, validator_bank_send_list, lendvalidator_bank_send_list, eco_bank_send_list, vc_bank_send_list, advisor_bank_send_list)
+    output_json(spreadsheet, validator_bank_send_list, lendvalidator_bank_send_list, eco_bank_send_list, vc_bank_send_list, advisor_bank_send_list)
   }
   
   
@@ -252,8 +252,8 @@ const ERROR_CODE = {
     ]));
     range.setValues(map_list);
   }
-  function output_error_list(SpredSheet, error_list){
-    let errorListSheet = SpredSheet.getSheetByName("error list");
+  function output_error_list(spreadsheet, error_list){
+    let errorListSheet = spreadsheet.getSheetByName("error list");
     errorListSheet.clear();
     range = errorListSheet.getRange(1,1,1,6); // a1:f1
     range.setValues([["error code", "toAddress", "amount", "vesting_starts", "vesting_ends", "discord id"]]);
@@ -274,8 +274,8 @@ const ERROR_CODE = {
     ]));
     range.setValues(map_list);
   }
-  function output_json(SpredSheet, validator_bank_send_list, lendvalidator_bank_send_list, eco_bank_send_list, vc_bank_send_list, advisor_bank_send_list){
-    let jsonSheet = SpredSheet.getSheetByName("output json");
+  function output_json(spreadsheet, validator_bank_send_list, lendvalidator_bank_send_list, eco_bank_send_list, vc_bank_send_list, advisor_bank_send_list){
+    let jsonSheet = spreadsheet.getSheetByName("output json");
     jsonSheet.clear();
   
     // validator
